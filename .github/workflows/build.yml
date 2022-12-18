@@ -3,8 +3,17 @@ name: Build
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.gitignore'
+      - '**/*.gitattributes'
   pull_request:
     branches: [ main ]
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
   build-library:
@@ -18,8 +27,18 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
+    - uses: actions/setup-java@v2
+      with:
+        distribution: 'microsoft'
+        java-version: '11'
+
+    - name: Install MAUI Workloads
+      run: |
+        dotnet workload install android --ignore-failed-sources
+        dotnet workload install maui --ignore-failed-sources
+
     - name: Restore dependencies
       run: dotnet restore
 
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore -c Release -f net6.0-android --no-restore
